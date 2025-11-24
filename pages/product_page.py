@@ -31,9 +31,11 @@ class ProductPage(BasePage):
         self.solve_quiz_and_get_code()
 
     def get_product_name(self):
+        """Получает название товара со страницы"""
         return self.browser.find_element(*self.PRODUCT_NAME).text
 
     def get_product_price(self):
+        """Получает цену товара со страницы"""
         return self.browser.find_element(*self.PRODUCT_PRICE).text
 
     def should_be_success_message(self):
@@ -43,7 +45,21 @@ class ProductPage(BasePage):
         assert self.is_element_present(*self.BASKET_TOTAL_MESSAGE), "Basket total message is not presented"
 
     def get_success_message_product_name(self):
+        """Получает название товара из сообщения об успешном добавлении"""
         return self.browser.find_element(*self.SUCCESS_MESSAGE_PRODUCT_NAME).text
 
     def get_basket_total(self):
+        """Получает общую стоимость корзины из сообщения"""
         return self.browser.find_element(*self.BASKET_TOTAL).text
+
+    def should_be_correct_product_in_basket(self, product_name):
+        """Проверяет, что в корзину добавлен правильный товар"""
+        success_message_product_name = self.get_success_message_product_name()
+        assert product_name == success_message_product_name, \
+            f"Product name in success message doesn't match. Expected: {product_name}, Got: {success_message_product_name}"
+
+    def should_be_correct_basket_total(self, product_price):
+        """Проверяет, что стоимость корзины соответствует цене товара"""
+        basket_total = self.get_basket_total()
+        assert product_price == basket_total, \
+            f"Basket total doesn't match product price. Expected: {product_price}, Got: {basket_total}"
