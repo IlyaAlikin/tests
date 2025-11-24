@@ -1,70 +1,48 @@
 import pytest
 from pages.product_page import ProductPage
 
+link = "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/"
 
-# Тест для поиска бага в промо-акциях
-@pytest.mark.parametrize('promo_offer', [
-    "offer0", "offer1", "offer2", "offer3", "offer4",
-    "offer5", "offer6", "offer7", "offer8", "offer9"
-])
-def test_guest_can_add_product_to_basket(browser, promo_offer):
-    link = f"http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo={promo_offer}"
+def test_guest_cant_see_success_message_after_adding_product_to_basket(browser):
+    """
+    Тест: Гость не должен видеть сообщение об успехе после добавления товара в корзину
+    Ожидаемый результат: ПАДАЕТ, потому что сообщение ПОЯВЛЯЕТСЯ после добавления
+    """
     page = ProductPage(browser, link)
     page.open()
-
-    # Получаем актуальные данные товара со страницы
-    product_name = page.get_product_name()
-    product_price = page.get_product_price()
-
-    print(f"\nTesting promo: {promo_offer}")
-    print(f"Product: {product_name}")
-    print(f"Price: {product_price}")
-    print(f"URL: {link}")
-
-    # Добавляем товар в корзину
     page.add_product_to_basket()
+    page.should_not_be_success_message()  # Эта проверка должна упасть
 
-    # Проверяем, что сообщения появились
-    page.should_be_success_message()
-    page.should_be_basket_total_message()
-
-    # Проверяем, что товар и цена корректны
-    page.should_be_correct_product_in_basket(product_name)
-    page.should_be_correct_basket_total(product_price)
-
-    print(f"✅ Promo {promo_offer} passed successfully!")
-
-
-# Альтернативный вариант с явным указанием ссылок
-@pytest.mark.parametrize('link', [
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer0",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer1",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer2",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer3",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer4",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer5",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer6",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer7",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer8",
-    "http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer9"
-])
-def test_guest_can_add_product_to_basket_with_links(browser, link):
+def test_guest_cant_see_success_message(browser):
+    """
+    Тест: Гость не должен видеть сообщение об успехе без добавления товара
+    Ожидаемый результат: ПРОХОДИТ, потому что сообщения нет на пустой странице
+    """
     page = ProductPage(browser, link)
     page.open()
+    page.should_not_be_success_message()  # Эта проверка должна пройти
 
-    product_name = page.get_product_name()
-    product_price = page.get_product_price()
-
-    print(f"\nTesting URL: {link}")
-    print(f"Product: {product_name}")
-    print(f"Price: {product_price}")
-
+def test_message_disappeared_after_adding_product_to_basket(browser):
+    """
+    Тест: Сообщение должно исчезнуть после добавления товара в корзину
+    Ожидаемый результат: ПАДАЕТ, потому что сообщение НЕ ИСЧЕЗАЕТ
+    """
+    page = ProductPage(browser, link)
+    page.open()
     page.add_product_to_basket()
+    page.should_success_message_disappear()  # Эта проверка должна упасть
 
-    page.should_be_success_message()
-    page.should_be_basket_total_message()
+# После запуска и анализа помечаем падающие тесты как xfail
+@pytest.mark.xfail(reason="Сообщение появляется после добавления товара")
+def test_guest_cant_see_success_message_after_adding_product_to_basket_xfail(browser):
+    page = ProductPage(browser, link)
+    page.open()
+    page.add_product_to_basket()
+    page.should_not_be_success_message()
 
-    page.should_be_correct_product_in_basket(product_name)
-    page.should_be_correct_basket_total(product_price)
-
-    print(f"✅ Test passed for: {link}")
+@pytest.mark.xfail(reason="Сообщение не исчезает после добавления товара")
+def test_message_disappeared_after_adding_product_to_basket_xfail(browser):
+    page = ProductPage(browser, link)
+    page.open()
+    page.add_product_to_basket()
+    page.should_success_message_disappear()
